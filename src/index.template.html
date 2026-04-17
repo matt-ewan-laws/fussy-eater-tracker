@@ -156,6 +156,21 @@
           });
         }
 
+        if (app.ports && app.ports.focusDraftName) {
+          app.ports.focusDraftName.subscribe(function () {
+            window.requestAnimationFrame(function () {
+              var input = document.getElementById("draft-name-input");
+              if (input) {
+                input.focus();
+                if (typeof input.setSelectionRange === "function") {
+                  var length = input.value ? input.value.length : 0;
+                  input.setSelectionRange(length, length);
+                }
+              }
+            });
+          });
+        }
+
         if (app.ports && app.ports.requestClearFood) {
           app.ports.requestClearFood.subscribe(requestClearFood);
         }

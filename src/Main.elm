@@ -31,6 +31,9 @@ port foodsLoaded : (Decode.Value -> msg) -> Sub msg
 port requestNow : () -> Cmd msg
 
 
+port focusDraftName : () -> Cmd msg
+
+
 port clearFoodConfirmed : (Int -> msg) -> Sub msg
 
 
@@ -238,6 +241,7 @@ type Msg
     | ToggleExpandedFood Int
     | CloseOverlay
     | UpdateDraftName String
+    | ClearDraftName
     | UpdateDraftEmoji String
     | UpdateDraftPrepStyle PrepStyle
     | UpdateDraftInteraction (Maybe Interaction)
@@ -298,6 +302,9 @@ update msg model =
 
         UpdateDraftName draftName ->
             ( { model | draftName = draftName }, Cmd.none )
+
+        ClearDraftName ->
+            ( { model | draftName = "" }, focusDraftName () )
 
         UpdateDraftEmoji draftEmoji ->
             ( { model
@@ -1335,15 +1342,16 @@ addFoodOverlay model =
                     , div [ class "relative mt-3 shrink-0" ]
                         [ input
                             [ class "w-full rounded-[30px] bg-[#edf1e2] py-5 pl-6 pr-14 text-xl font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                            , Attr.id "draft-name-input"
                             , placeholder "What's on the plate?"
                             , value model.draftName
                             , onInput UpdateDraftName
                             ]
                             []
                         , button
-                            [ class "absolute right-4 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full text-2xl text-slate-500 transition hover:bg-black/5 hover:text-slate-700"
+                            [ class "absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-[30px] leading-none text-slate-500 transition hover:bg-black/5 hover:text-slate-700"
                             , type_ "button"
-                            , onClick (UpdateDraftName "")
+                            , onClick ClearDraftName
                             ]
                             [ text "×" ]
                         ]
