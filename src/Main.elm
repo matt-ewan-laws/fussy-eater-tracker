@@ -1215,7 +1215,7 @@ settingsView model =
             , p [ class "mt-4 text-[17px] leading-[1.75] text-[#4b5d7f]" ]
                 [ text "Clear the tracker and start over with a fresh food routine." ]
             , button
-                [ class "mt-8 rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[14px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)]"
+                [ class "mt-8 w-full rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[14px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)]"
                 , onClick RequestResetFoods
                 ]
                 [ text "RESET ALL DATA" ]
@@ -1507,14 +1507,14 @@ resetSystemOverlay =
                         [ text "This will clear the tracker, remove all food data, and start fresh." ]
                     ]
                 ]
-            , div [ class "mt-6 flex flex-col gap-3 sm:flex-row" ]
+            , div [ class "mt-6 grid grid-cols-2 gap-3" ]
                 [ button
-                    [ class "flex-1 rounded-full border border-[#d8dfc7] bg-white px-5 py-3 text-[16px] font-extrabold text-slate-700"
+                    [ class "rounded-full border border-[#d8dfc7] bg-white px-5 py-3 text-[16px] font-extrabold text-slate-700"
                     , onClick CloseOverlay
                     ]
                     [ text "Cancel" ]
                 , button
-                    [ class "flex-1 rounded-full bg-[linear-gradient(180deg,#d95b35_0%,#b53c18_100%)] px-5 py-3 text-[16px] font-extrabold text-white shadow-[0_16px_28px_rgba(149,61,28,0.28)]"
+                    [ class "rounded-full bg-[linear-gradient(180deg,#d95b35_0%,#b53c18_100%)] px-5 py-3 text-[16px] font-extrabold text-white shadow-[0_16px_28px_rgba(149,61,28,0.28)]"
                     , onClick ConfirmResetFoods
                     ]
                     [ text "Reset all data" ]
