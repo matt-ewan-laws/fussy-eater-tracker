@@ -1003,11 +1003,18 @@ shelvedCard food =
             [ text food.emoji ]
         , h3 [ class "mt-3 text-[19px] font-extrabold text-slate-800" ] [ text food.name ]
         , p [ class "mt-1 text-xs font-bold uppercase tracking-[0.28em] text-slate-500" ] [ text "Shelved" ]
-        , button
-            [ class "mt-4 rounded-full border border-[#d8dfc7] bg-white px-4 py-2 text-sm font-bold text-slate-700"
-            , onClick (ToggleShelf food.id)
+        , div [ class "mt-4 flex gap-2" ]
+            [ button
+                [ class "flex-1 rounded-full border border-[#d8dfc7] bg-white px-4 py-2 text-sm font-bold text-slate-700"
+                , onClick (ToggleShelf food.id)
+                ]
+                [ text "Return" ]
+            , button
+                [ class "flex-1 rounded-full border border-rose-300 bg-white px-4 py-2 text-sm font-bold text-rose-700"
+                , onClick (RequestClearFood food.id)
+                ]
+                [ text "Clear" ]
             ]
-            [ text "Return" ]
         ]
 
 
@@ -1256,7 +1263,7 @@ bottomNav model =
     nav
         [ class "fixed inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-4 sm:pb-4" ]
         [ div
-            [ class "mx-auto flex w-full items-center justify-around rounded-[28px] bg-[linear-gradient(180deg,#edf1e6_0%,#e1e7d7_100%)] px-2 py-2 shadow-[0_10px_32px_rgba(111,111,78,0.12)] sm:rounded-[30px] sm:px-4 sm:py-3"
+            [ class "mx-auto flex w-full items-center justify-around rounded-[28px] bg-[linear-gradient(180deg,#eef2fb_0%,#d7dfef_100%)] px-2 py-2 shadow-[0_10px_32px_rgba(52,68,96,0.16)] ring-1 ring-white/70 sm:rounded-[30px] sm:px-4 sm:py-3"
             , style "max-width" "640px"
             ]
             [ tabButton Tracker model.activeTab "Tracker" "🍽️"
@@ -1275,8 +1282,8 @@ tabButton tab activeTab label emoji =
     button
         [ classList
             [ ( "grid place-items-center rounded-full px-3 py-2 transition sm:px-4 sm:py-3", True )
-            , ( "bg-[#3f7f09] text-white shadow-md", isActive )
-            , ( "text-slate-700", not isActive )
+            , ( "bg-[linear-gradient(180deg,#244a7d_0%,#152948_100%)] text-white shadow-md", isActive )
+            , ( "text-slate-600", not isActive )
             ]
         , onClick (SelectTab tab)
         ]
@@ -1470,9 +1477,9 @@ clearLogsOverlay food =
                     [ text food.emoji ]
                 , div [ class "flex-1" ]
                     [ h2 [ class "text-[28px] font-extrabold tracking-tight text-slate-800" ]
-                        [ text "Clear logs?" ]
+                        [ text ("Clear " ++ food.name ++ "?") ]
                     , p [ class "mt-2 text-[16px] leading-7 text-slate-600" ]
-                        [ text ("This will remove every log entry for " ++ food.name ++ ".") ]
+                        [ text ("This will remove every log entry for " ++ food.name ++ ", but keep the food itself.") ]
                     ]
                 ]
             , div [ class "mt-6 flex flex-col gap-3 sm:flex-row" ]
