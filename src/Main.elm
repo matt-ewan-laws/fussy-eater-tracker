@@ -585,7 +585,7 @@ view model =
         , style "background" "radial-gradient(circle at top, rgba(106, 147, 37, 0.15), transparent 34%), linear-gradient(180deg, #f8f6ef 0%, #f3f1e6 100%)"
         ]
         [ div
-            [ class "mx-auto flex min-h-screen w-full flex-col px-4 pb-28 pt-4"
+            [ class "mx-auto flex min-h-screen w-full flex-col px-3 pb-28 pt-3 sm:px-4"
             , style "max-width" "640px"
             ]
             [ headerView model
@@ -600,18 +600,18 @@ view model =
 headerView : Model -> Html Msg
 headerView _ =
     section
-        [ class "flex items-center justify-between pb-5" ]
+        [ class "flex flex-col gap-4 pb-5 sm:flex-row sm:items-center sm:justify-between" ]
         [ div [ class "flex items-center gap-3" ]
             [ avatar
             , div []
-                [ h1 [ class "text-[28px] font-extrabold tracking-tight text-[#446b0a]" ]
+                [ h1 [ class "text-[25px] font-extrabold tracking-tight text-[#446b0a] sm:text-[28px]" ]
                     [ text "Toddler Tracker" ]
                 , p [ class "mt-1 text-[12px] font-semibold uppercase tracking-[0.28em] text-slate-500" ]
                     [ text "calm mealtime logging" ]
                 ]
             ]
         , button
-            [ class "grid h-12 w-12 place-items-center rounded-full bg-[#dfe8d1] text-3xl font-light text-[#5a8c10] shadow-sm transition hover:scale-105"
+            [ class "grid h-12 w-12 place-items-center self-start rounded-full bg-[#dfe8d1] text-3xl font-light text-[#5a8c10] shadow-sm transition hover:scale-105 sm:self-auto"
             , onClick OpenAddFood
             ]
             [ text "+" ]
@@ -667,14 +667,14 @@ trackerView model =
 heroBanner : List Food -> List Food -> Html Msg
 heroBanner activeFoods masteredFoods =
     article
-        [ class "rounded-[36px] bg-[linear-gradient(135deg,#f1ffe0_0%,#f8fbf0_48%,#ffffff_100%)] px-6 py-7 shadow-[0_18px_36px_rgba(91,122,28,0.10)] ring-1 ring-white/80" ]
+        [ class "rounded-[32px] bg-[linear-gradient(135deg,#f1ffe0_0%,#f8fbf0_48%,#ffffff_100%)] px-4 py-5 shadow-[0_18px_36px_rgba(91,122,28,0.10)] ring-1 ring-white/80 sm:rounded-[36px] sm:px-6 sm:py-7" ]
         [ p [ class "text-[12px] uppercase tracking-[0.35em] text-[#6a8b26]" ]
             [ text "Ready for a bite?" ]
-        , h2 [ class "mt-3 text-[34px] font-extrabold leading-tight tracking-tight text-slate-800" ]
+        , h2 [ class "mt-3 text-[28px] font-extrabold leading-tight tracking-tight text-slate-800 sm:text-[34px]" ]
             [ text "Log mealtime in two taps." ]
-        , p [ class "mt-3 max-w-[290px] text-[17px] leading-7 text-slate-600" ]
+        , p [ class "mt-3 max-w-none text-[16px] leading-7 text-slate-600 sm:max-w-[290px] sm:text-[17px]" ]
             [ text "Choose a prep style once, then log look, touch, taste, or eat without extra friction." ]
-        , div [ class "mt-5 flex flex-wrap gap-3" ]
+        , div [ class "mt-5 flex flex-wrap gap-2 sm:gap-3" ]
             [ statPill (String.fromInt (List.length activeFoods) ++ " active")
             , statPill (String.fromInt (List.length masteredFoods) ++ " accepted")
             ]
@@ -691,8 +691,8 @@ statPill label =
 sectionHeading : String -> String -> Html Msg
 sectionHeading title subtitle =
     div []
-        [ h2 [ class "text-[28px] font-extrabold tracking-tight text-slate-800" ] [ text title ]
-        , p [ class "mt-1 text-[16px] leading-6 text-slate-500" ] [ text subtitle ]
+        [ h2 [ class "text-[24px] font-extrabold tracking-tight text-slate-800 sm:text-[28px]" ] [ text title ]
+        , p [ class "mt-1 text-[15px] leading-6 text-slate-500 sm:text-[16px]" ] [ text subtitle ]
         ]
 
 
@@ -700,12 +700,12 @@ sectionHeadingWithCount : String -> Int -> String -> Html Msg
 sectionHeadingWithCount title count subtitle =
     div []
         [ div [ class "flex items-center justify-between gap-3" ]
-            [ h2 [ class "text-[28px] font-extrabold tracking-tight text-slate-800" ] [ text title ]
+            [ h2 [ class "text-[24px] font-extrabold tracking-tight text-slate-800 sm:text-[28px]" ] [ text title ]
             , span
-                [ class "inline-flex min-w-16 items-center justify-center rounded-full bg-[#e7f0d4] px-5 py-2 text-[20px] font-extrabold leading-none text-[#5b6d42] shadow-[0_8px_16px_rgba(91,109,66,0.08)]" ]
+                [ class "inline-flex min-w-14 items-center justify-center rounded-full bg-[#e7f0d4] px-4 py-2 text-[18px] font-extrabold leading-none text-[#5b6d42] shadow-[0_8px_16px_rgba(91,109,66,0.08)] sm:min-w-16 sm:px-5 sm:text-[20px]" ]
                 [ text (String.fromInt count) ]
             ]
-        , p [ class "mt-1 text-[16px] leading-6 text-slate-500" ] [ text subtitle ]
+        , p [ class "mt-1 text-[15px] leading-6 text-slate-500 sm:text-[16px]" ] [ text subtitle ]
         ]
 
 
@@ -732,25 +732,25 @@ activeFoodCard model food =
     in
     article
         [ classList
-            [ ( "overflow-hidden rounded-[36px] bg-white shadow-[0_18px_38px_rgba(109,121,78,0.12)] ring-1 ring-white/90", True )
+            [ ( "overflow-hidden rounded-[32px] bg-white shadow-[0_18px_38px_rgba(109,121,78,0.12)] ring-1 ring-white/90 sm:rounded-[36px]", True )
             , ( "ring-[#dfe8ce]", food.tier == Active )
             ]
         ]
         [ div [ class "h-3 bg-[linear-gradient(90deg,#2f6d00_0%,#62b122_100%)]" ] []
-        , div [ class "p-4 sm:p-5" ]
-            [ div [ class "flex items-center justify-between gap-3" ]
+        , div [ class "p-3 sm:p-5" ]
+            [ div [ class "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" ]
                 [ button
-                    [ class "flex min-w-0 flex-1 items-center gap-3 text-left"
+                    [ class "flex min-w-0 w-full items-start gap-3 text-left sm:flex-1 sm:items-center"
                     , onClick (ToggleExpandedFood food.id)
                     ]
                     [ foodIcon food
-                    , div [ class "min-w-0" ]
-                        [ h3 [ class "truncate text-[26px] font-extrabold leading-none tracking-tight text-slate-800" ] [ text food.name ]
+                    , div [ class "min-w-0 flex-1" ]
+                        [ h3 [ class "text-[22px] font-extrabold leading-none tracking-tight text-slate-800 sm:truncate sm:text-[26px]" ] [ text food.name ]
                         , div [ class "mt-2 flex flex-wrap items-center gap-2" ]
                             [ exposureBadge exposureCount
                             , span
                                 [ classList
-                                    [ ( "rounded-full px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.16em]", True )
+                                    [ ( "rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] sm:px-3 sm:text-[11px] sm:tracking-[0.16em]", True )
                                     , ( "bg-[#f5dccf] text-[#b43700]", maintenanceDue )
                                     , ( "bg-[#eef3e4] text-[#5b6d42]", not maintenanceDue )
                                     ]
@@ -760,10 +760,10 @@ activeFoodCard model food =
                         ]
                     ]
                 , button
-                    [ class "shrink-0 inline-flex items-center gap-2 rounded-full bg-[linear-gradient(180deg,#377800_0%,#255800_100%)] px-4 py-3 text-[16px] font-extrabold text-white shadow-[0_12px_24px_rgba(61,111,0,0.24)]"
+                    [ class "shrink-0 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(180deg,#377800_0%,#255800_100%)] px-4 py-3 text-[16px] font-extrabold text-white shadow-[0_12px_24px_rgba(61,111,0,0.24)] sm:w-auto"
                     , onClick (ToggleExpandedFood food.id)
                     ]
-                    [ span [ class "text-[28px] leading-none" ] [ text "+" ]
+                    [ span [ class "text-[24px] leading-none sm:text-[28px]" ] [ text "+" ]
                     , text "Log"
                     ]
                 ]
@@ -774,7 +774,7 @@ activeFoodCard model food =
                     , ( "max-h-0 opacity-0 -translate-y-2 pointer-events-none", expanded )
                     ]
                 ]
-                [ div [ class "grid grid-cols-5 gap-2 pb-1 sm:gap-3" ]
+                [ div [ class "grid grid-cols-5 gap-1 pb-1 sm:gap-3" ]
                     [ compactMetric "👀" counts.lookCount
                     , compactMetric "🤏" counts.touchCount
                     , compactMetric "👃" counts.smellCount
@@ -794,9 +794,9 @@ activeFoodCard model food =
 compactMetric : String -> Int -> Html Msg
 compactMetric emoji count =
     div
-        [ class "relative flex items-center justify-center rounded-full bg-[#f2f4ec] px-3 py-3 text-[#50554c]" ]
-        [ span [ class "emoji text-[22px] leading-none" ] [ text emoji ]
-        , div [ class "absolute -right-1 -top-1 grid h-7 w-7 place-items-center rounded-full bg-white text-[15px] font-extrabold text-[#49503f] shadow-[0_6px_12px_rgba(103,120,78,0.12)] ring-1 ring-[#eef2e6]" ]
+        [ class "relative flex aspect-square items-center justify-center rounded-full bg-[#f2f4ec] px-2 py-2 text-[#50554c]" ]
+        [ span [ class "emoji text-[18px] leading-none sm:text-[22px]" ] [ text emoji ]
+        , div [ class "absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[13px] font-extrabold text-[#49503f] shadow-[0_6px_12px_rgba(103,120,78,0.12)] ring-1 ring-[#eef2e6] sm:h-7 sm:w-7 sm:text-[15px]" ]
             [ text (String.fromInt count) ]
         ]
 
@@ -840,9 +840,9 @@ expandedFoodCard model food =
                 "😐"
     in
     div [ class "mt-5 space-y-4" ]
-        [ div [ class "rounded-[30px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-4 shadow-inner ring-1 ring-white/70" ]
-            [ p [ class "text-[18px] font-extrabold tracking-tight text-slate-700" ] [ text "Sensory Exposures" ]
-            , div [ class "mt-4 grid grid-cols-5 gap-3" ]
+        [ div [ class "rounded-[28px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-3 shadow-inner ring-1 ring-white/70 sm:rounded-[30px] sm:p-4" ]
+            [ p [ class "text-[17px] font-extrabold tracking-tight text-slate-700 sm:text-[18px]" ] [ text "Sensory Exposures" ]
+            , div [ class "mt-4 grid grid-cols-5 gap-1 sm:gap-3" ]
                 [ expandedMetric "👀" "Look" counts.lookCount True
                 , expandedMetric "🤏" "Touch" counts.touchCount False
                 , expandedMetric "👃" "Smell" counts.smellCount False
@@ -850,36 +850,36 @@ expandedFoodCard model food =
                 , expandedMetric "😋" "Eat" counts.eatCount False
                 ]
             ]
-        , div [ class "rounded-[30px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-4 shadow-inner ring-1 ring-white/70" ]
+        , div [ class "rounded-[28px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-3 shadow-inner ring-1 ring-white/70 sm:rounded-[30px] sm:p-4" ]
             [ div [ class "flex items-center justify-between gap-3" ]
-                [ p [ class "text-[18px] font-extrabold tracking-tight text-slate-700" ] [ text "Eating Acceptance" ]
-                , p [ class "text-[18px] font-extrabold text-[#3b7500]" ] [ text (String.fromInt progressCurrent ++ " / " ++ String.fromInt progressGoal) ]
+                [ p [ class "text-[17px] font-extrabold tracking-tight text-slate-700 sm:text-[18px]" ] [ text "Eating Acceptance" ]
+                , p [ class "text-[17px] font-extrabold text-[#3b7500] sm:text-[18px]" ] [ text (String.fromInt progressCurrent ++ " / " ++ String.fromInt progressGoal) ]
                 ]
-            , div [ class "mt-4 h-5 overflow-hidden rounded-full bg-[#dfe4d7]" ]
+            , div [ class "mt-4 h-4 overflow-hidden rounded-full bg-[#dfe4d7] sm:h-5" ]
                 [ div
                     [ class "h-full rounded-full bg-[linear-gradient(90deg,#2f6d00_0%,#6cab25_100%)]"
                     , style "width" progressPercent
                     ]
                     []
                 ]
-            , p [ class "mt-3 text-[14px] leading-6 text-slate-600" ]
+            , p [ class "mt-3 text-[13px] leading-6 text-slate-600 sm:text-[14px]" ]
                 [ text ("Successfully eaten " ++ String.fromInt counts.eatCount ++ " time" ++ pluralize counts.eatCount ++ ". Goal is " ++ String.fromInt progressGoal ++ " for mastery.") ]
             ]
-        , div [ class "rounded-[30px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-4 shadow-inner ring-1 ring-white/70" ]
-            [ div [ class "flex items-center gap-4" ]
-                [ div [ class "emoji grid h-16 w-16 shrink-0 place-items-center rounded-full bg-[#ffc88f] text-[30px]" ] [ text statusEmoji ]
+        , div [ class "rounded-[28px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-3 shadow-inner ring-1 ring-white/70 sm:rounded-[30px] sm:p-4" ]
+            [ div [ class "flex items-start gap-3 sm:items-center sm:gap-4" ]
+                [ div [ class "emoji grid h-14 w-14 shrink-0 place-items-center rounded-full bg-[#ffc88f] text-[28px] sm:h-16 sm:w-16 sm:text-[30px]" ] [ text statusEmoji ]
                 , div []
                     [ p [ class "text-[11px] font-extrabold uppercase tracking-[0.3em] text-slate-500" ] [ text "Current Status" ]
-                    , p [ class "mt-1 text-[18px] font-extrabold tracking-tight text-slate-800" ] [ text statusCopy ]
-                    , p [ class "mt-1 text-[14px] leading-6 text-slate-600" ] [ text (foodSummary food) ]
+                    , p [ class "mt-1 text-[17px] font-extrabold tracking-tight text-slate-800 sm:text-[18px]" ] [ text statusCopy ]
+                    , p [ class "mt-1 text-[13px] leading-6 text-slate-600 sm:text-[14px]" ] [ text (foodSummary food) ]
                     ]
                 ]
             ]
-        , div [ class "rounded-[30px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-4 shadow-inner ring-1 ring-white/70" ]
+        , div [ class "rounded-[28px] bg-[linear-gradient(180deg,#f5f7ef_0%,#eff2e7_100%)] p-3 shadow-inner ring-1 ring-white/70 sm:rounded-[30px] sm:p-4" ]
             [ div [ class "flex items-center justify-between gap-3" ]
                 [ p [ class "text-[11px] font-extrabold uppercase tracking-[0.3em] text-slate-500" ] [ text "Quick Log" ] ]
             , prepStylePicker model.draftPrepStyle
-            , div [ class "mt-4 grid grid-cols-2 gap-3" ]
+            , div [ class "mt-4 grid grid-cols-2 gap-2 sm:gap-3" ]
                 [ interactionButton model.draftInteraction food.id model.draftPrepStyle model.draftNote Look "👀" "Look"
                 , interactionButton model.draftInteraction food.id model.draftPrepStyle model.draftNote Touch "✋" "Touch"
                 , interactionButton model.draftInteraction food.id model.draftPrepStyle model.draftNote Smell "👃" "Smell"
@@ -896,7 +896,7 @@ expandedFoodCard model food =
                 []
             , button
                 [ classList
-                    [ ( "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-[18px] font-extrabold shadow-[0_14px_24px_rgba(61,111,0,0.16)] transition", True )
+                    [ ( "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-[16px] font-extrabold shadow-[0_14px_24px_rgba(61,111,0,0.16)] transition sm:text-[18px]", True )
                     , ( "bg-[linear-gradient(180deg,#377800_0%,#255800_100%)] text-white", model.draftInteraction /= Nothing )
                     , ( "bg-[#e9eee2] text-slate-400", model.draftInteraction == Nothing )
                     ]
@@ -907,10 +907,10 @@ expandedFoodCard model food =
             ]
         , div [ class "flex" ]
             [ button
-                [ class "inline-flex items-center justify-center gap-2 rounded-full bg-[#eef1e7] px-4 py-3 text-[18px] font-extrabold text-slate-800 shadow-[0_10px_18px_rgba(92,104,84,0.08)]"
+                [ class "inline-flex items-center justify-center gap-2 rounded-full bg-[#eef1e7] px-4 py-3 text-[16px] font-extrabold text-slate-800 shadow-[0_10px_18px_rgba(92,104,84,0.08)] sm:text-[18px]"
                 , onClick (ToggleShelf food.id)
                 ]
-                [ span [ class "emoji text-[22px]" ] [ text "🗂️" ]
+                [ span [ class "emoji text-[20px] sm:text-[22px]" ] [ text "🗂️" ]
                 , text (if food.tier == Shelved then "Return" else "Shelve")
                 ]
             ]
@@ -923,16 +923,16 @@ expandedMetric emoji label count highlighted =
         [ class "text-center" ]
         [ div
             [ classList
-                [ ( "emoji relative mx-auto grid h-16 w-16 place-items-center rounded-full text-[28px] shadow-[0_10px_18px_rgba(103,120,78,0.10)]", True )
+                [ ( "emoji relative mx-auto grid h-12 w-12 place-items-center rounded-full text-[22px] shadow-[0_10px_18px_rgba(103,120,78,0.10)] sm:h-16 sm:w-16 sm:text-[28px]", True )
                 , ( "bg-[#3a7a00] text-white", highlighted )
                 , ( "bg-[#a7ef5d] text-[#2d4a00]", not highlighted )
                 ]
             ]
             [ text emoji
-            , div [ class "absolute -right-1 top-0 grid h-7 w-7 place-items-center rounded-full bg-white text-[16px] font-extrabold text-[#3b7500] shadow" ]
+            , div [ class "absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[13px] font-extrabold text-[#3b7500] shadow sm:h-7 sm:w-7 sm:text-[16px]" ]
                 [ text (String.fromInt count) ]
             ]
-        , p [ class "mt-3 text-[14px] font-extrabold text-slate-700" ] [ text label ]
+        , p [ class "mt-2 text-[12px] font-extrabold leading-tight text-slate-700 sm:mt-3 sm:text-[14px]" ] [ text label ]
         ]
 
 
@@ -942,8 +942,8 @@ quickInteractionButton foodId interaction emoji label =
         [ class "flex items-center gap-3 rounded-[24px] bg-white px-4 py-3 text-left shadow-[0_10px_18px_rgba(103,120,78,0.08)] ring-1 ring-[#e2e8d7] transition active:scale-[0.99]"
         , onClick (UpdateDraftInteraction (Just interaction))
         ]
-        [ div [ class "emoji grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#eef2e6] text-[23px]" ] [ text emoji ]
-        , span [ class "text-[17px] font-bold text-slate-700" ] [ text label ]
+        [ div [ class "emoji grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#eef2e6] text-[21px] sm:h-11 sm:w-11 sm:text-[23px]" ] [ text emoji ]
+        , span [ class "text-[16px] font-bold text-slate-700 sm:text-[17px]" ] [ text label ]
         ]
 
 
@@ -954,9 +954,9 @@ exposureBadge count =
             ordinalSuffix count
     in
     span
-        [ class "inline-flex items-center gap-2 rounded-full bg-[#cfe8ff] px-3.5 py-2 text-[#15476a] shadow-[0_8px_16px_rgba(74,126,174,0.10)]" ]
-        [ span [ class "text-[24px] font-extrabold leading-none tracking-tight" ] [ text (String.fromInt count ++ suffix) ]
-        , span [ class "text-[11px] font-extrabold uppercase leading-none tracking-[0.12em]" ] [ text "Exposure" ]
+        [ class "inline-flex items-center gap-2 rounded-full bg-[#cfe8ff] px-3 py-2 text-[#15476a] shadow-[0_8px_16px_rgba(74,126,174,0.10)]" ]
+        [ span [ class "text-[20px] font-extrabold leading-none tracking-tight sm:text-[24px]" ] [ text (String.fromInt count ++ suffix) ]
+        , span [ class "text-[10px] font-extrabold uppercase leading-none tracking-[0.10em] sm:text-[11px] sm:tracking-[0.12em]" ] [ text "Exposure" ]
         ]
 
 
@@ -991,7 +991,7 @@ shelvedFoodsView foods =
         emptyState "Nothing is shelved" "Pause foods here when you need less mealtime pressure."
 
     else
-        div [ class "grid grid-cols-2 gap-4" ]
+        div [ class "grid grid-cols-1 gap-4 sm:grid-cols-2" ]
             (List.map shelvedCard foods)
 
 
@@ -1017,7 +1017,7 @@ masteredFoodsView model foods =
         emptyState "No accepted foods yet" "Once a food is eaten across consecutive offerings, it moves here."
 
     else
-        div [ class "grid grid-cols-2 gap-4" ]
+        div [ class "grid grid-cols-1 gap-4 sm:grid-cols-2" ]
             (List.map (masteredCard model) foods)
 
 
@@ -1190,19 +1190,19 @@ settingsView : Model -> Html Msg
 settingsView model =
     div [ class "flex flex-1 flex-col gap-6 pt-2 pb-6" ]
         [ article
-            [ class "rounded-[40px] bg-white px-6 py-8 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70" ]
-            [ h2 [ class "text-[24px] font-extrabold tracking-tight text-[#1f2d4a]" ] [ text "Backup & restore" ]
-            , p [ class "mt-4 text-[17px] leading-[1.75] text-[#4b5d7f]" ]
+            [ class "rounded-[32px] bg-white px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+            [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Backup & restore" ]
+            , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
                 [ text "Export a JSON backup or restore one you saved earlier." ]
             , div [ class "mt-8 flex flex-col gap-3 sm:flex-row" ]
                 [ button
-                    [ class "rounded-full bg-[linear-gradient(180deg,#4f7d00_0%,#376100_100%)] px-6 py-4 text-[14px] font-extrabold tracking-[0.24em] text-white shadow-[0_10px_18px_rgba(123,173,40,0.18)]"
+                    [ class "rounded-full bg-[linear-gradient(180deg,#4f7d00_0%,#376100_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-white shadow-[0_10px_18px_rgba(123,173,40,0.18)] sm:text-[14px]"
                     , onClick ExportFoods
                     , disabled (not model.storageReady)
                     ]
                     [ text "EXPORT JSON" ]
                 , button
-                    [ class "rounded-full border border-[#cfd7bf] bg-white px-6 py-4 text-[14px] font-extrabold tracking-[0.24em] text-[#4c5f34] shadow-[0_10px_18px_rgba(123,173,40,0.10)]"
+                    [ class "rounded-full border border-[#cfd7bf] bg-white px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-[#4c5f34] shadow-[0_10px_18px_rgba(123,173,40,0.10)] sm:text-[14px]"
                     , onClick ImportFoods
                     , disabled (not model.storageReady)
                     ]
@@ -1210,24 +1210,24 @@ settingsView model =
                 ]
             ]
         , article
-            [ class "rounded-[40px] bg-white px-6 py-8 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70" ]
-            [ h2 [ class "text-[24px] font-extrabold tracking-tight text-[#1f2d4a]" ] [ text "Reset System" ]
-            , p [ class "mt-4 text-[17px] leading-[1.75] text-[#4b5d7f]" ]
+            [ class "rounded-[32px] bg-white px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+            [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Reset System" ]
+            , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
                 [ text "Clear the tracker and start over with a fresh food routine." ]
-            , button
-                [ class "mt-8 w-full rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[14px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)]"
+                , button
+                [ class "mt-8 w-full rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)] sm:text-[14px]"
                 , onClick RequestResetFoods
                 ]
                 [ text "RESET ALL DATA" ]
             ]
         , article
-            [ class "rounded-[40px] bg-[#eef6dd] px-6 py-8 shadow-[0_18px_42px_rgba(130,120,90,0.10)] ring-1 ring-white/70" ]
-            [ h2 [ class "text-[24px] font-extrabold tracking-tight text-[#1f2d4a]" ] [ text "Taste rule" ]
-            , p [ class "mt-4 text-[17px] leading-[1.75] text-[#4b5d7f]" ]
+            [ class "rounded-[32px] bg-[#eef6dd] px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.10)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+            [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Taste rule" ]
+            , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
                 [ text "Choose how many eating logs a food needs before the taste bar completes and it moves to accepted." ]
-            , div [ class "mt-6 flex items-center gap-4" ]
+            , div [ class "mt-6 flex items-center gap-3 sm:gap-4" ]
                 [ input
-                    [ class "w-24 rounded-[24px] bg-white px-4 py-3 text-center text-[24px] font-extrabold text-slate-800 outline-none ring-1 ring-[#d8e4c5]"
+                    [ class "w-20 rounded-[24px] bg-white px-4 py-3 text-center text-[22px] font-extrabold text-slate-800 outline-none ring-1 ring-[#d8e4c5] sm:w-24 sm:text-[24px]"
                     , type_ "number"
                     , Attr.min "1"
                     , step "1"
@@ -1235,7 +1235,7 @@ settingsView model =
                     , onInput UpdateAcceptanceThreshold
                     ]
                     []
-                , p [ class "text-[15px] leading-6 text-[#4b5d7f]" ]
+                , p [ class "text-[14px] leading-6 text-[#4b5d7f] sm:text-[15px]" ]
                     [ text "eating logs" ]
                 ]
             ]
@@ -1245,7 +1245,7 @@ settingsView model =
 floatingAction : Html Msg
 floatingAction =
     button
-        [ class "fixed bottom-28 right-6 z-20 grid h-16 w-16 place-items-center rounded-full bg-[#3d7800] text-[32px] font-light text-white shadow-[0_18px_36px_rgba(61,120,0,0.35)] transition hover:scale-105"
+        [ class "fixed bottom-24 right-4 z-20 grid h-14 w-14 place-items-center rounded-full bg-[#3d7800] text-[30px] font-light text-white shadow-[0_18px_36px_rgba(61,120,0,0.35)] transition hover:scale-105 sm:bottom-28 sm:right-6 sm:h-16 sm:w-16 sm:text-[32px]"
         , onClick OpenAddFood
         ]
         [ text "+" ]
@@ -1254,9 +1254,9 @@ floatingAction =
 bottomNav : Model -> Html Msg
 bottomNav model =
     nav
-        [ class "fixed inset-x-0 bottom-0 z-20 px-4 pb-4" ]
+        [ class "fixed inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-4 sm:pb-4" ]
         [ div
-            [ class "mx-auto flex w-full items-center justify-around rounded-[30px] bg-[linear-gradient(180deg,#edf1e6_0%,#e1e7d7_100%)] px-4 py-3 shadow-[0_10px_32px_rgba(111,111,78,0.12)]"
+            [ class "mx-auto flex w-full items-center justify-around rounded-[28px] bg-[linear-gradient(180deg,#edf1e6_0%,#e1e7d7_100%)] px-2 py-2 shadow-[0_10px_32px_rgba(111,111,78,0.12)] sm:rounded-[30px] sm:px-4 sm:py-3"
             , style "max-width" "640px"
             ]
             [ tabButton Tracker model.activeTab "Tracker" "🍽️"
@@ -1274,14 +1274,14 @@ tabButton tab activeTab label emoji =
     in
     button
         [ classList
-            [ ( "grid place-items-center rounded-full px-4 py-3 transition", True )
+            [ ( "grid place-items-center rounded-full px-3 py-2 transition sm:px-4 sm:py-3", True )
             , ( "bg-[#3f7f09] text-white shadow-md", isActive )
             , ( "text-slate-700", not isActive )
             ]
         , onClick (SelectTab tab)
         ]
-        [ div [ class "emoji text-[22px] leading-none" ] [ text emoji ]
-        , div [ class "mt-1 text-[11px] font-bold uppercase tracking-[0.35em]" ] [ text label ]
+        [ div [ class "emoji text-[20px] leading-none sm:text-[22px]" ] [ text emoji ]
+        , div [ class "mt-1 text-[10px] font-bold uppercase tracking-[0.28em] sm:text-[11px] sm:tracking-[0.35em]" ] [ text label ]
         ]
 
 
@@ -1403,7 +1403,7 @@ detailOverlay model food =
                 , h2 [ class "mt-5 text-center text-[30px] font-extrabold tracking-tight text-slate-800 sm:text-[34px]" ] [ text food.name ]
                 , div [ class "mt-3 flex items-center justify-center gap-2" ]
                     [ tierBadge food.tier
-                    , span [ class "rounded-full bg-[#ffcb8e] px-4 py-2 text-xs font-extrabold uppercase tracking-[0.25em] text-[#8a4d00] sm:text-sm" ]
+                    , span [ class "rounded-full bg-[#ffcb8e] px-3 py-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#8a4d00] sm:px-4 sm:text-sm sm:tracking-[0.25em]" ]
                         [ text lastInteractionText ]
                     ]
                 , p [ class "mt-4 text-center text-[16px] leading-7 text-slate-600 sm:text-[18px] sm:leading-8" ]
@@ -1435,7 +1435,7 @@ detailOverlay model food =
                         div [ class "space-y-3" ]
                             (List.map (detailLogRow now food.id) logs)
                     ]
-                , div [ class "mt-5 flex gap-3" ]
+                , div [ class "mt-5 flex flex-col gap-3 sm:flex-row" ]
                     [ button
                         [ class "flex-1 rounded-full border-2 border-rose-300 bg-white py-3 text-[16px] font-extrabold text-rose-700 sm:py-4 sm:text-[18px]"
                         , onClick (DeleteFood food.id)
@@ -1525,7 +1525,7 @@ resetSystemOverlay =
 
 prepStylePicker : PrepStyle -> Html Msg
 prepStylePicker selected =
-    ul [ class "mt-6 grid list-none grid-cols-4 gap-3 p-0" ]
+    ul [ class "mt-6 grid list-none grid-cols-2 gap-2 p-0 sm:grid-cols-4 sm:gap-3" ]
         (List.map (prepStyleChip selected) prepStyles)
 
 
@@ -1533,13 +1533,13 @@ prepStyleChip : PrepStyle -> PrepStyle -> Html Msg
 prepStyleChip selected styleChoice =
     li
         [ classList
-            [ ( "flex min-h-[64px] items-center justify-center rounded-2xl px-2 text-center transition", True )
+            [ ( "flex min-h-[56px] items-center justify-center rounded-2xl px-2 text-center transition sm:min-h-[64px]", True )
             , ( "bg-[#eef1e7] text-slate-700", styleChoice /= selected )
             , ( "bg-[#d9efb8] text-[#436f00] ring-2 ring-[#7fb83a]", styleChoice == selected )
             ]
         , onClick (UpdateDraftPrepStyle styleChoice)
         ]
-        [ span [ class "text-[13px] font-bold leading-tight" ] [ text (prepStyleLabel styleChoice) ] ]
+        [ span [ class "text-[12px] font-bold leading-tight sm:text-[13px]" ] [ text (prepStyleLabel styleChoice) ] ]
 
 
 notePills : Html Msg
@@ -1551,7 +1551,7 @@ notePills =
 noteChip : String -> Html Msg
 noteChip label =
     button
-        [ class "rounded-full bg-white px-3 py-2 text-xs font-bold text-slate-600 ring-1 ring-[#dbe4cd]"
+        [ class "rounded-full bg-white px-3 py-2 text-[11px] font-bold text-slate-600 ring-1 ring-[#dbe4cd] sm:text-xs"
         , onClick (UpdateDraftNote label)
         ]
         [ text label ]
@@ -1567,15 +1567,15 @@ interactionButton selectedInteraction foodId _ _ interaction emoji label =
             ]
         , onClick (UpdateDraftInteraction (Just interaction))
         ]
-        [ div [ class "emoji grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white text-[24px] shadow-sm sm:h-14 sm:w-14 sm:text-[28px]" ] [ text emoji ]
+        [ div [ class "emoji grid h-11 w-11 shrink-0 place-items-center rounded-full bg-white text-[22px] shadow-sm sm:h-14 sm:w-14 sm:text-[28px]" ] [ text emoji ]
         , div [ class "min-w-0" ]
-            [ span [ class "block text-[18px] font-semibold text-slate-700 sm:text-[20px]" ] [ text label ] ]
+            [ span [ class "block text-[16px] font-semibold text-slate-700 sm:text-[20px]" ] [ text label ] ]
         ]
 
 
 emojiChoiceGrid : String -> List FoodChoice -> Html Msg
 emojiChoiceGrid selectedEmoji choices =
-    ul [ class "grid list-none grid-cols-4 gap-4 p-0" ]
+    ul [ class "grid list-none grid-cols-4 gap-3 p-0 sm:gap-4" ]
         (List.map (foodChoiceChip selectedEmoji) choices)
 
 
@@ -1583,7 +1583,7 @@ foodChoiceChip : String -> FoodChoice -> Html Msg
 foodChoiceChip selectedEmoji choice =
     li
         [ classList
-            [ ( "grid h-16 max-h-16 w-16 place-items-center overflow-hidden rounded-full text-[32px] transition", True )
+            [ ( "grid h-14 max-h-14 w-14 place-items-center overflow-hidden rounded-full text-[28px] transition sm:h-16 sm:max-h-16 sm:w-16 sm:text-[32px]", True )
             , ( "bg-[#eef1e7]", choice.emoji /= selectedEmoji )
             , ( "bg-[#d9efb8] ring-2 ring-[#7fb83a]", choice.emoji == selectedEmoji )
             ]
@@ -1646,7 +1646,7 @@ tierBadge tier =
 foodIcon : Food -> Html Msg
 foodIcon food =
     div
-        ( [ class "emoji grid h-16 w-16 shrink-0 place-items-center rounded-full text-[34px]" ]
+        ( [ class "emoji grid h-14 w-14 shrink-0 place-items-center rounded-full text-[30px] sm:h-16 sm:w-16 sm:text-[34px]" ]
             ++ pastelColorStyles food.name
         )
         [ text food.emoji ]
