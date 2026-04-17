@@ -165,20 +165,33 @@ foodChoices =
     , { emoji = "🍐", name = "Pear" }
     , { emoji = "🍊", name = "Orange" }
     , { emoji = "🍉", name = "Watermelon" }
+    , { emoji = "🍇", name = "Grapes" }
+    , { emoji = "🍒", name = "Cherries" }
+    , { emoji = "🥑", name = "Avocado" }
     , { emoji = "🥦", name = "Broccoli" }
+    , { emoji = "🥒", name = "Cucumber" }
     , { emoji = "🥕", name = "Carrot" }
-    , { emoji = "🍠", name = "Sweet Potato" }
+    , { emoji = "🍅", name = "Tomato" }
+    , { emoji = "🫛", name = "Peas" }
+    , { emoji = "🍄", name = "Mushroom" }
     , { emoji = "🌽", name = "Corn" }
+    , { emoji = "🍠", name = "Sweet Potato" }
+    , { emoji = "🥔", name = "Potato" }
+    , { emoji = "🫘", name = "Beans" }
+    , { emoji = "🍞", name = "Bread" }
     , { emoji = "🍝", name = "Pasta" }
     , { emoji = "🍚", name = "Rice" }
-    , { emoji = "🍞", name = "Bread" }
-    , { emoji = "🥣", name = "Oatmeal" }
+    , { emoji = "🥣", name = "Bowl With Spoon" }
+    , { emoji = "🥙", name = "Stuffed Flatbread" }
+    , { emoji = "🥘", name = "Shallow Pan Of Food" }
+    , { emoji = "🍲", name = "Pot Of Food" }
+    , { emoji = "🥗", name = "Green Salad" }
     , { emoji = "🧀", name = "Cheese" }
     , { emoji = "🥛", name = "Milk" }
+    , { emoji = "🍦", name = "Yogurt" }
     , { emoji = "🥚", name = "Egg" }
     , { emoji = "🍗", name = "Chicken" }
     , { emoji = "🐟", name = "Fish" }
-    , { emoji = "🥑", name = "Avocado" }
     , { emoji = "🍪", name = "Snack" }
     ]
 
@@ -1297,14 +1310,14 @@ overlayView model =
 addFoodOverlay : Model -> Html Msg
 addFoodOverlay model =
     div
-        [ class "fixed inset-0 z-30 bg-black/25 px-3 py-8 backdrop-blur-sm" ]
+        [ class "fixed inset-0 z-30 overflow-hidden bg-black/25 px-3 py-4 backdrop-blur-sm sm:py-8" ]
         [ div
             [ class "mx-auto flex h-full w-full items-end"
             , style "max-width" "640px"
             ]
             [ article
-                [ class "w-full rounded-[36px] bg-[#f8f7ef] p-6 shadow-[0_24px_60px_rgba(72,72,52,0.25)]" ]
-                [ div [ class "flex items-start justify-between gap-4" ]
+                [ class "flex max-h-[calc(100dvh-2rem)] w-full flex-col overflow-hidden rounded-[36px] bg-[#f8f7ef] p-6 shadow-[0_24px_60px_rgba(72,72,52,0.25)] sm:max-h-[calc(100dvh-4rem)]" ]
+                [ div [ class "flex shrink-0 items-start justify-between gap-4" ]
                     [ h2 [ class "text-[32px] font-extrabold tracking-tight text-slate-800" ] [ text "New Food" ]
                     , button
                         [ class "grid h-11 w-11 place-items-center rounded-full bg-[#dfe4d8] text-2xl text-slate-700"
@@ -1312,23 +1325,34 @@ addFoodOverlay model =
                         ]
                         [ text "×" ]
                     ]
-                , p [ class "mt-5 text-sm font-extrabold uppercase tracking-[0.25em] text-slate-500" ]
-                    [ text "Pick an emoji" ]
-                , emojiChoiceGrid model.draftEmoji foodChoices
-                , p [ class "mt-7 text-sm font-extrabold uppercase tracking-[0.25em] text-slate-500" ]
-                    [ text "Food name" ]
-                , input
-                    [ class "mt-3 w-full rounded-[30px] bg-[#edf1e2] px-6 py-5 text-xl font-semibold text-slate-700 outline-none placeholder:text-slate-400"
-                    , placeholder "What's on the plate?"
-                    , value model.draftName
-                    , onInput UpdateDraftName
+                , div [ class "mt-5 flex min-h-0 flex-1 flex-col" ]
+                    [ p [ class "shrink-0 text-sm font-extrabold uppercase tracking-[0.25em] text-slate-500" ]
+                        [ text "Pick an emoji" ]
+                    , div [ class "mt-5 min-h-0 flex-1 overflow-y-auto pr-2" ]
+                        [ emojiChoiceGrid model.draftEmoji foodChoices ]
+                    , p [ class "mt-7 shrink-0 text-sm font-extrabold uppercase tracking-[0.25em] text-slate-500" ]
+                        [ text "Food name" ]
+                    , div [ class "relative mt-3 shrink-0" ]
+                        [ input
+                            [ class "w-full rounded-[30px] bg-[#edf1e2] py-5 pl-6 pr-14 text-xl font-semibold text-slate-700 outline-none placeholder:text-slate-400"
+                            , placeholder "What's on the plate?"
+                            , value model.draftName
+                            , onInput UpdateDraftName
+                            ]
+                            []
+                        , button
+                            [ class "absolute right-4 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full text-2xl text-slate-500 transition hover:bg-black/5 hover:text-slate-700"
+                            , type_ "button"
+                            , onClick (UpdateDraftName "")
+                            ]
+                            [ text "×" ]
+                        ]
+                    , button
+                        [ class "mt-8 w-full shrink-0 rounded-full bg-[linear-gradient(180deg,#497f00_0%,#2f5d00_100%)] py-5 text-[22px] font-extrabold text-white shadow-[0_16px_28px_rgba(58,96,0,0.30)]"
+                        , onClick CreateFood
+                        ]
+                        [ text "Add Food" ]
                     ]
-                    []
-                , button
-                    [ class "mt-8 w-full rounded-full bg-[linear-gradient(180deg,#497f00_0%,#2f5d00_100%)] py-5 text-[22px] font-extrabold text-white shadow-[0_16px_28px_rgba(58,96,0,0.30)]"
-                    , onClick CreateFood
-                    ]
-                    [ text "Add Food" ]
                 ]
             ]
         ]
@@ -1543,7 +1567,7 @@ interactionButton selectedInteraction foodId _ _ interaction emoji label =
 
 emojiChoiceGrid : String -> List FoodChoice -> Html Msg
 emojiChoiceGrid selectedEmoji choices =
-    ul [ class "mt-5 grid list-none grid-cols-4 gap-4 p-0" ]
+    ul [ class "grid list-none grid-cols-4 gap-4 p-0" ]
         (List.map (foodChoiceChip selectedEmoji) choices)
 
 
@@ -1551,13 +1575,13 @@ foodChoiceChip : String -> FoodChoice -> Html Msg
 foodChoiceChip selectedEmoji choice =
     li
         [ classList
-            [ ( "grid h-16 w-16 place-items-center rounded-full text-[32px] transition", True )
+            [ ( "grid h-16 max-h-16 w-16 place-items-center overflow-hidden rounded-full text-[32px] transition", True )
             , ( "bg-[#eef1e7]", choice.emoji /= selectedEmoji )
             , ( "bg-[#d9efb8] ring-2 ring-[#7fb83a]", choice.emoji == selectedEmoji )
             ]
         , onClick (UpdateDraftEmoji choice.emoji)
         ]
-        [ span [ class "emoji" ] [ text choice.emoji ]
+        [ span [ class "emoji leading-none" ] [ text choice.emoji ]
         , span [ class "sr-only" ] [ text choice.name ]
         ]
 
@@ -2387,7 +2411,7 @@ defaultFoodNameForEmoji emoji =
             "Bread"
 
         "🥣" ->
-            "Oatmeal"
+            "Bowl With Spoon"
 
         "🧀" ->
             "Cheese"
@@ -2411,4 +2435,4 @@ defaultFoodNameForEmoji emoji =
             "Snack"
 
         _ ->
-            "Custom Food"
+            "New Food"
