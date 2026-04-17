@@ -795,7 +795,7 @@ compactMetric : String -> Int -> Html Msg
 compactMetric emoji count =
     div
         [ class "relative flex aspect-square items-center justify-center rounded-full bg-[#f2f4ec] px-2 py-2 text-[#50554c]" ]
-        [ span [ class "emoji text-[18px] leading-none sm:text-[22px]" ] [ text emoji ]
+        [ span [ class "emoji text-[32px] leading-none" ] [ text emoji ]
         , div [ class "absolute -right-1 -top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[13px] font-extrabold text-[#49503f] shadow-[0_6px_12px_rgba(103,120,78,0.12)] ring-1 ring-[#eef2e6] sm:h-7 sm:w-7 sm:text-[15px]" ]
             [ text (String.fromInt count) ]
         ]
@@ -923,7 +923,7 @@ expandedMetric emoji label count highlighted =
         [ class "text-center" ]
         [ div
             [ classList
-                [ ( "emoji relative mx-auto grid h-12 w-12 place-items-center rounded-full text-[22px] shadow-[0_10px_18px_rgba(103,120,78,0.10)] sm:h-16 sm:w-16 sm:text-[28px]", True )
+                [ ( "emoji relative mx-auto grid h-12 w-12 place-items-center rounded-full text-[20px] shadow-[0_10px_18px_rgba(103,120,78,0.10)] sm:h-16 sm:w-16 sm:text-[28px] md:h-[4.75rem] md:w-[4.75rem] md:text-[20px]", True )
                 , ( "bg-[#3a7a00] text-white", highlighted )
                 , ( "bg-[#a7ef5d] text-[#2d4a00]", not highlighted )
                 ]
