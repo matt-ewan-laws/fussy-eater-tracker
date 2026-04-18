@@ -738,9 +738,9 @@ activeFoodCard model food =
         ]
         [ div [ class "h-3 bg-[linear-gradient(90deg,#2f6d00_0%,#62b122_100%)]" ] []
         , div [ class "p-3 sm:p-5" ]
-            [ div [ class "flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between" ]
+            [ div [ class "flex items-start gap-3 sm:items-center" ]
                 [ button
-                    [ class "flex min-w-0 w-full items-start gap-3 text-left sm:flex-1 sm:items-center"
+                    [ class "flex min-w-0 flex-1 items-start gap-3 text-left sm:items-center"
                     , onClick (ToggleExpandedFood food.id)
                     ]
                     [ foodIcon food
@@ -759,13 +759,13 @@ activeFoodCard model food =
                             ]
                         ]
                     ]
-                , button
-                    [ class "shrink-0 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(180deg,#377800_0%,#255800_100%)] px-4 py-3 text-[16px] font-extrabold text-white shadow-[0_12px_24px_rgba(61,111,0,0.24)] sm:w-auto"
-                    , onClick (ToggleExpandedFood food.id)
-                    ]
-                    [ span [ class "text-[24px] leading-none sm:text-[28px]" ] [ text "+" ]
-                    , text "Log"
-                    ]
+                ]
+            , button
+                [ class "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(180deg,#377800_0%,#255800_100%)] px-4 py-4 text-[16px] font-extrabold text-white shadow-[0_12px_24px_rgba(61,111,0,0.24)]"
+                , onClick (ToggleExpandedFood food.id)
+                ]
+                [ span [ class "text-[24px] leading-none sm:text-[28px]" ] [ text "+" ]
+                , text "Log"
                 ]
             , div
                 [ classList
@@ -1201,7 +1201,7 @@ settingsView model =
             [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Backup & restore" ]
             , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
                 [ text "Export a JSON backup or restore one you saved earlier." ]
-            , div [ class "mt-8 flex flex-col gap-3 sm:flex-row" ]
+            , div [ class "mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between" ]
                 [ button
                     [ class "rounded-full bg-[linear-gradient(180deg,#4f7d00_0%,#376100_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-white shadow-[0_10px_18px_rgba(123,173,40,0.18)] sm:text-[14px]"
                     , onClick ExportFoods
