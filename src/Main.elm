@@ -1219,8 +1219,8 @@ settingsView model =
             [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Reset System" ]
             , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
                 [ text "Clear the tracker and start over with a fresh food routine." ]
-                , button
-                [ class "mt-8 w-full rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)] sm:text-[14px]"
+            , button
+                [ class "ff-safe-danger-cta mt-8 inline-flex w-full items-center justify-center rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)] sm:text-[14px]"
                 , onClick RequestResetFoods
                 ]
                 [ text "RESET ALL DATA" ]
