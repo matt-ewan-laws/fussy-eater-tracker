@@ -732,11 +732,11 @@ activeFoodCard model food =
     in
     article
         [ classList
-            [ ( "overflow-hidden rounded-[32px] bg-white shadow-[0_18px_38px_rgba(109,121,78,0.12)] ring-1 ring-white/90 sm:rounded-[36px]", True )
+            [ ( "active-food-card overflow-hidden rounded-[32px] bg-white shadow-[0_18px_38px_rgba(109,121,78,0.12)] ring-1 ring-white/90 sm:rounded-[36px]", True )
             , ( "ring-[#dfe8ce]", food.tier == Active )
             ]
         ]
-        [ div [ class "h-3 bg-[linear-gradient(90deg,#2f6d00_0%,#62b122_100%)]" ] []
+        [ div [ class "active-food-card__accent h-3 bg-[linear-gradient(90deg,#2f6d00_0%,#62b122_100%)]" ] []
         , div [ class "p-3 sm:p-5" ]
             [ div [ class "flex items-start gap-3 sm:items-center" ]
                 [ button
@@ -749,11 +749,9 @@ activeFoodCard model food =
                         , div [ class "mt-2 flex flex-wrap items-center gap-2" ]
                             [ exposureBadge exposureCount
                             , span
-                                [ classList
-                                    [ ( "rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] sm:px-3 sm:text-[11px] sm:tracking-[0.16em]", True )
-                                    , ( "bg-[#f5dccf] text-[#b43700]", maintenanceDue )
-                                    , ( "bg-[#eef3e4] text-[#5b6d42]", not maintenanceDue )
-                                    ]
+                                [ class "rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.12em] sm:px-3 sm:text-[11px] sm:tracking-[0.16em]"
+                                , style "background-color" (if maintenanceDue then "#f5dccf" else "#eef3e4")
+                                , style "color" (if maintenanceDue then "#b43700" else "#5b6d42")
                                 ]
                                 [ text ageLabel ]
                             ]
@@ -761,7 +759,7 @@ activeFoodCard model food =
                     ]
                 ]
             , button
-                [ class "mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(180deg,#377800_0%,#255800_100%)] px-4 py-4 text-[16px] font-extrabold text-white shadow-[0_12px_24px_rgba(61,111,0,0.24)]"
+                [ class "ff-safe-cta mt-4 inline-flex w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(180deg,#377800_0%,#255800_100%)] px-4 py-4 text-[16px] font-extrabold text-white shadow-[0_12px_24px_rgba(61,111,0,0.24)]"
                 , onClick (ToggleExpandedFood food.id)
                 ]
                 [ span [ class "text-[24px] leading-none sm:text-[28px]" ] [ text "+" ]
@@ -954,7 +952,7 @@ exposureBadge count =
             ordinalSuffix count
     in
     span
-        [ class "inline-flex items-center gap-2 rounded-full bg-[#cfe8ff] px-3 py-2 text-[#15476a] shadow-[0_8px_16px_rgba(74,126,174,0.10)]" ]
+        [ class "ff-safe-pill inline-flex items-center gap-2 rounded-full bg-[#cfe8ff] px-3 py-2 text-[#15476a] shadow-[0_8px_16px_rgba(74,126,174,0.10)]" ]
         [ span [ class "text-[20px] font-extrabold leading-none tracking-tight sm:text-[24px]" ] [ text (String.fromInt count ++ suffix) ]
         , span [ class "text-[10px] font-extrabold uppercase leading-none tracking-[0.10em] sm:text-[11px] sm:tracking-[0.12em]" ] [ text "Exposure" ]
         ]

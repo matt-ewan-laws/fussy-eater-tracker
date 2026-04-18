@@ -13,6 +13,12 @@
 
   button {
     @apply select-none;
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    border: 0;
+    color: inherit;
+    font: inherit;
   }
 
   .emoji {
@@ -28,5 +34,54 @@
       sans-serif;
     font-variant-emoji: emoji;
     font-feature-settings: "liga" 0;
+  }
+}
+
+@layer components {
+  .active-food-card,
+  .active-food-card__accent,
+  .ff-safe-cta,
+  .ff-safe-pill {
+    position: relative;
+    isolation: isolate;
+  }
+}
+
+@supports (-moz-appearance: none) {
+  @layer components {
+    .active-food-card {
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+
+    .active-food-card__accent,
+    .ff-safe-cta,
+    .ff-safe-pill {
+      background: none !important;
+    }
+
+    .active-food-card__accent::before,
+    .ff-safe-cta::before,
+    .ff-safe-pill::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      border-radius: inherit;
+      transform: translateZ(0);
+    }
+
+    .active-food-card__accent::before {
+      background: linear-gradient(90deg, #2f6d00 0%, #62b122 100%);
+    }
+
+    .ff-safe-cta::before {
+      background: linear-gradient(180deg, #377800 0%, #255800 100%);
+    }
+
+    .ff-safe-pill::before {
+      background-color: #cfe8ff;
+    }
   }
 }
