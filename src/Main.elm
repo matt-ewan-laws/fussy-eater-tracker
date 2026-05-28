@@ -19,6 +19,15 @@ port exportFoods : Encode.Value -> Cmd msg
 port requestImportFoods : () -> Cmd msg
 
 
+port requestInstall : () -> Cmd msg
+
+
+port requestStoragePersistence : () -> Cmd msg
+
+
+port requestUpgradeToHosted : Encode.Value -> Cmd msg
+
+
 port clearFoods : () -> Cmd msg
 
 
@@ -26,6 +35,15 @@ port requestClearFood : Int -> Cmd msg
 
 
 port foodsLoaded : (Decode.Value -> msg) -> Sub msg
+
+
+port importedFoods : (Decode.Value -> msg) -> Sub msg
+
+
+port storageStatusLoaded : (String -> msg) -> Sub msg
+
+
+port installAvailabilityChanged : (Bool -> msg) -> Sub msg
 
 
 port requestNow : () -> Cmd msg
@@ -54,6 +72,11 @@ type alias Model =
     , draftNote : String
     , historySearch : String
     , storageReady : Bool
+    , runtimeMode : RuntimeMode
+    , hostedUrl : String
+    , storageStatus : StorageStatus
+    , installAvailable : Bool
+    , importNotice : Maybe String
     , pendingLog : Maybe PendingLog
     , currentTime : Maybe Int
     }
@@ -71,6 +94,26 @@ type Overlay
     | Detail Int
     | ConfirmClear Int
     | ConfirmReset
+
+
+type RuntimeMode
+    = Hosted
+    | Offline
+
+
+type StorageStatus
+    = StorageUnknown
+    | StorageSecured
+    | StorageStandard
+
+
+type alias Flags =
+    { mode : String
+    , hostedUrl : String
+    , storageStatus : String
+    , installAvailable : Bool
+    , importNotice : Maybe String
+    }
 
 
 type Tier
@@ -204,8 +247,30 @@ prepStyles =
     [ Raw, Roasted, Steamed, Mashed, Sliced, Mixed, Dip, OtherPrep ]
 
 
-initialModel : Model
-initialModel =
+runtimeModeFromString : String -> RuntimeMode
+runtimeModeFromString mode =
+    if mode == "hosted" then
+        Hosted
+
+    else
+        Offline
+
+
+storageStatusFromString : String -> StorageStatus
+storageStatusFromString status =
+    case status of
+        "secured" ->
+            StorageSecured
+
+        "standard" ->
+            StorageStandard
+
+        _ ->
+            StorageUnknown
+
+
+initialModel : Flags -> Model
+initialModel flags =
     { activeTab = Tracker
     , overlay = NoOverlay
     , expandedFoodId = Nothing
@@ -219,15 +284,34 @@ initialModel =
     , draftNote = ""
     , historySearch = ""
     , storageReady = False
+    , runtimeMode = runtimeModeFromString flags.mode
+    , hostedUrl = flags.hostedUrl
+    , storageStatus = storageStatusFromString flags.storageStatus
+    , installAvailable = flags.installAvailable
+    , importNotice = flags.importNotice
     , pendingLog = Nothing
     , currentTime = Nothing
     }
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
-        { init = \_ -> ( initialModel, requestNow () )
+        { init =
+            \flags ->
+                let
+                    model =
+                        initialModel flags
+
+                    startupCommands =
+                        case model.runtimeMode of
+                            Hosted ->
+                                Cmd.batch [ requestNow (), requestStoragePersistence () ]
+
+                            Offline ->
+                                requestNow ()
+                in
+                ( model, startupCommands )
         , update = update
         , subscriptions = subscriptions
         , view = view
@@ -259,8 +343,14 @@ type Msg
     | ConfirmResetFoods
     | ExportFoods
     | ImportFoods
+    | RequestInstall
+    | RequestUpgradeToHosted
+    | DismissImportNotice
     | UpdateAcceptanceThreshold String
     | ReceiveFoods Decode.Value
+    | ReceiveImportedFoods Decode.Value
+    | ReceiveStorageStatus String
+    | ReceiveInstallAvailability Bool
     | ReceiveNow Int
 
 
@@ -268,6 +358,9 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ foodsLoaded ReceiveFoods
+        , importedFoods ReceiveImportedFoods
+        , storageStatusLoaded ReceiveStorageStatus
+        , installAvailabilityChanged ReceiveInstallAvailability
         , clearFoodConfirmed ClearFoodConfirmed
         , nowLoaded ReceiveNow
         ]
@@ -498,6 +591,15 @@ update msg model =
             else
                 ( model, Cmd.none )
 
+        RequestInstall ->
+            ( model, requestInstall () )
+
+        RequestUpgradeToHosted ->
+            ( model, requestUpgradeToHosted (foodsStateEncoder model) )
+
+        DismissImportNotice ->
+            ( { model | importNotice = Nothing }, Cmd.none )
+
         UpdateAcceptanceThreshold rawValue ->
             let
                 parsed =
@@ -528,6 +630,33 @@ update msg model =
 
                 Err _ ->
                     ( { model | storageReady = True }, Cmd.none )
+
+        ReceiveImportedFoods raw ->
+            case Decode.decodeValue foodsStateDecoder raw of
+                Ok decoded ->
+                    let
+                        loadedFoods =
+                            Maybe.withDefault model.foods decoded.foods
+
+                        importedModel =
+                            { model
+                                | foods = loadedFoods
+                                , acceptanceThreshold = Maybe.withDefault model.acceptanceThreshold decoded.acceptanceThreshold |> max 1
+                                , nextFoodId = nextFoodId loadedFoods
+                                , storageReady = True
+                                , importNotice = Just "Welcome! Your data has been successfully imported."
+                            }
+                    in
+                    ( importedModel, saveFoods (foodsStateEncoder importedModel) )
+
+                Err _ ->
+                    ( { model | importNotice = Just "That backup could not be imported." }, Cmd.none )
+
+        ReceiveStorageStatus status ->
+            ( { model | storageStatus = storageStatusFromString status }, Cmd.none )
+
+        ReceiveInstallAvailability isAvailable ->
+            ( { model | installAvailable = isAvailable }, Cmd.none )
 
         ReceiveNow now ->
             case model.pendingLog of
@@ -589,6 +718,7 @@ view model =
             , style "max-width" "640px"
             ]
             [ headerView model
+            , importNoticeBanner model.importNotice
             , mainView model
             , bottomNav model
             , floatingAction
@@ -1194,57 +1324,181 @@ filterHistoryItems query items =
 settingsView : Model -> Html Msg
 settingsView model =
     div [ class "flex flex-1 flex-col gap-6 pt-2 pb-6" ]
-        [ article
-            [ class "rounded-[32px] bg-white px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
-            [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Backup & restore" ]
-            , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
-                [ text "Export a JSON backup or restore one you saved earlier." ]
-            , div [ class "mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between" ]
-                [ button
-                    [ class "rounded-full bg-[linear-gradient(180deg,#4f7d00_0%,#376100_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-white shadow-[0_10px_18px_rgba(123,173,40,0.18)] sm:text-[14px]"
-                    , onClick ExportFoods
-                    , disabled (not model.storageReady)
+        [ backupRestoreCard model
+        , deliveryCard model
+        , resetCard
+        , tasteRuleCard model
+        ]
+
+
+importNoticeBanner : Maybe String -> Html Msg
+importNoticeBanner notice =
+    case notice of
+        Just message ->
+            article
+                [ class "rounded-[28px] bg-[#e8f6df] px-5 py-4 shadow-[0_14px_32px_rgba(76,125,0,0.12)] ring-1 ring-[#cfe6bd]" ]
+                [ div [ class "flex items-start justify-between gap-4" ]
+                    [ p [ class "text-[15px] font-bold leading-7 text-[#315500] sm:text-[16px]" ]
+                        [ text message ]
+                    , button
+                        [ class "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-[20px] font-bold text-[#4f7d00] shadow-sm"
+                        , onClick DismissImportNotice
+                        ]
+                        [ text "×" ]
                     ]
-                    [ text "EXPORT JSON" ]
-                , button
-                    [ class "rounded-full border border-[#cfd7bf] bg-white px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-[#4c5f34] shadow-[0_10px_18px_rgba(123,173,40,0.10)] sm:text-[14px]"
-                    , onClick ImportFoods
-                    , disabled (not model.storageReady)
-                    ]
-                    [ text "IMPORT JSON" ]
                 ]
-            ]
-        , article
-            [ class "rounded-[32px] bg-white px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
-            [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Reset System" ]
-            , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
-                [ text "Clear the tracker and start over with a fresh food routine." ]
+
+        Nothing ->
+            text ""
+
+
+backupRestoreCard : Model -> Html Msg
+backupRestoreCard model =
+    article
+        [ class "rounded-[32px] bg-white px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+        [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Backup & restore" ]
+        , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
+            [ text "Export a JSON backup or restore one you saved earlier." ]
+        , div [ class "mt-8 flex flex-col gap-3 sm:flex-row sm:justify-between" ]
+            [ button
+                [ class "rounded-full bg-[linear-gradient(180deg,#4f7d00_0%,#376100_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-white shadow-[0_10px_18px_rgba(123,173,40,0.18)] sm:text-[14px]"
+                , onClick ExportFoods
+                , disabled (not model.storageReady)
+                ]
+                [ text "EXPORT JSON" ]
             , button
-                [ class "ff-safe-danger-cta mt-8 inline-flex w-full items-center justify-center rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)] sm:text-[14px]"
-                , onClick RequestResetFoods
+                [ class "rounded-full border border-[#cfd7bf] bg-white px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-[#4c5f34] shadow-[0_10px_18px_rgba(123,173,40,0.10)] sm:text-[14px]"
+                , onClick ImportFoods
+                , disabled (not model.storageReady)
                 ]
-                [ text "RESET ALL DATA" ]
-            ]
-        , article
-            [ class "rounded-[32px] bg-[#eef6dd] px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.10)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
-            [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Taste rule" ]
-            , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
-                [ text "Choose how many eating logs a food needs before the taste bar completes and it moves to accepted." ]
-            , div [ class "mt-6 flex items-center gap-3 sm:gap-4" ]
-                [ input
-                    [ class "w-20 rounded-[24px] bg-white px-4 py-3 text-center text-[22px] font-extrabold text-slate-800 outline-none ring-1 ring-[#d8e4c5] sm:w-24 sm:text-[24px]"
-                    , type_ "number"
-                    , Attr.min "1"
-                    , step "1"
-                    , value (String.fromInt model.acceptanceThreshold)
-                    , onInput UpdateAcceptanceThreshold
-                    ]
-                    []
-                , p [ class "text-[14px] leading-6 text-[#4b5d7f] sm:text-[15px]" ]
-                    [ text "eating logs" ]
-                ]
+                [ text "IMPORT JSON" ]
             ]
         ]
+
+
+deliveryCard : Model -> Html Msg
+deliveryCard model =
+    case model.runtimeMode of
+        Hosted ->
+            hostedDeliveryCard model
+
+        Offline ->
+            offlineDeliveryCard model
+
+
+hostedDeliveryCard : Model -> Html Msg
+hostedDeliveryCard model =
+    article
+        [ class "rounded-[32px] bg-[#f7fbef] px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.10)] ring-1 ring-white/80 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+        [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Hosted app" ]
+        , div [ class "mt-5 rounded-[24px] bg-white px-4 py-4 ring-1 ring-[#dbe8ca]" ]
+            [ p [ class "text-[14px] font-extrabold uppercase tracking-[0.18em] text-[#4f7d00]" ]
+                [ text (storageStatusLabel model.storageStatus) ]
+            , p [ class "mt-2 text-[15px] leading-7 text-[#4b5d7f]" ]
+                [ text (storageStatusDescription model.storageStatus) ]
+            ]
+        , button
+            [ classList
+                [ ( "mt-6 inline-flex w-full items-center justify-center rounded-full px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] shadow-[0_10px_18px_rgba(36,74,125,0.16)] sm:text-[14px]", True )
+                , ( "bg-[linear-gradient(180deg,#244a7d_0%,#152948_100%)] text-white", model.installAvailable )
+                , ( "border border-[#cfd7bf] bg-white text-[#4c5f34]", not model.installAvailable )
+                ]
+            , onClick RequestInstall
+            , disabled (not model.installAvailable)
+            ]
+            [ text "INSTALL APP" ]
+        , p [ class "mt-4 text-[14px] leading-7 text-[#4b5d7f]" ]
+            [ text (installHelpText model.installAvailable) ]
+        ]
+
+
+offlineDeliveryCard : Model -> Html Msg
+offlineDeliveryCard model =
+    article
+        [ class "rounded-[32px] bg-[#eef4fb] px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.10)] ring-1 ring-white/80 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+        [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Upgrade to Hosted App" ]
+        , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
+            [ text "Move this offline tracker to the hosted app and keep your data safer from accidental browser clearing." ]
+        , button
+            [ class "mt-8 inline-flex w-full items-center justify-center rounded-full bg-[linear-gradient(180deg,#244a7d_0%,#152948_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.24em] text-white shadow-[0_10px_18px_rgba(36,74,125,0.16)] sm:text-[14px]"
+            , onClick RequestUpgradeToHosted
+            , disabled (not model.storageReady || String.trim model.hostedUrl == "")
+            ]
+            [ text "UPGRADE TO HOSTED" ]
+        ]
+
+
+resetCard : Html Msg
+resetCard =
+    article
+        [ class "rounded-[32px] bg-white px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.12)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+        [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Reset System" ]
+        , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
+            [ text "Clear the tracker and start over with a fresh food routine." ]
+        , button
+            [ class "ff-safe-danger-cta mt-8 inline-flex w-full items-center justify-center rounded-full bg-[linear-gradient(180deg,#ff8b7a_0%,#e65c4a_100%)] px-6 py-4 text-[13px] font-extrabold tracking-[0.32em] text-white shadow-[0_10px_18px_rgba(214,82,61,0.22)] sm:text-[14px]"
+            , onClick RequestResetFoods
+            ]
+            [ text "RESET ALL DATA" ]
+        ]
+
+
+tasteRuleCard : Model -> Html Msg
+tasteRuleCard model =
+    article
+        [ class "rounded-[32px] bg-[#eef6dd] px-5 py-6 shadow-[0_18px_42px_rgba(130,120,90,0.10)] ring-1 ring-white/70 sm:rounded-[40px] sm:px-6 sm:py-8" ]
+        [ h2 [ class "text-[22px] font-extrabold tracking-tight text-[#1f2d4a] sm:text-[24px]" ] [ text "Taste rule" ]
+        , p [ class "mt-4 text-[16px] leading-[1.75] text-[#4b5d7f] sm:text-[17px]" ]
+            [ text "Choose how many eating logs a food needs before the taste bar completes and it moves to accepted." ]
+        , div [ class "mt-6 flex items-center gap-3 sm:gap-4" ]
+            [ input
+                [ class "w-20 rounded-[24px] bg-white px-4 py-3 text-center text-[22px] font-extrabold text-slate-800 outline-none ring-1 ring-[#d8e4c5] sm:w-24 sm:text-[24px]"
+                , type_ "number"
+                , Attr.min "1"
+                , step "1"
+                , value (String.fromInt model.acceptanceThreshold)
+                , onInput UpdateAcceptanceThreshold
+                ]
+                []
+            , p [ class "text-[14px] leading-6 text-[#4b5d7f] sm:text-[15px]" ]
+                [ text "eating logs" ]
+            ]
+        ]
+
+
+storageStatusLabel : StorageStatus -> String
+storageStatusLabel status =
+    case status of
+        StorageSecured ->
+            "Data Secured"
+
+        StorageStandard ->
+            "Standard Browser Storage"
+
+        StorageUnknown ->
+            "Checking Data Storage"
+
+
+storageStatusDescription : StorageStatus -> String
+storageStatusDescription status =
+    case status of
+        StorageSecured ->
+            "Protected from automatic OS clearing where your browser supports persistent storage."
+
+        StorageStandard ->
+            "Your browser has not granted protected storage. JSON backups are still available."
+
+        StorageUnknown ->
+            "The app is asking this browser whether protected storage is available."
+
+
+installHelpText : Bool -> String
+installHelpText installAvailable =
+    if installAvailable then
+        "Use this button to open your browser's native install prompt."
+
+    else
+        "If the button is unavailable, use your browser menu and choose Add to Home Screen."
 
 
 floatingAction : Html Msg

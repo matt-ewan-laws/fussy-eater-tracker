@@ -3,16 +3,109 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="description" content="Toddler Tracker helps parents log food exploration, repeated eating, and maintenance check-ins with low-friction input." />
+    <meta name="description" content="First Bites Tracker helps parents log food exploration, repeated eating, and maintenance check-ins with low-friction input." />
     <meta name="theme-color" content="#f3f1e6" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="First Bites" />
     <meta name="format-detection" content="telephone=no" />
-    <title>Toddler Tracker</title>
+    {{PWA_HEAD}}
+    <title>First Bites Tracker</title>
+    <style>
+      #access-gate {
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: radial-gradient(circle at top, rgba(106, 147, 37, 0.18), transparent 34%), linear-gradient(180deg, #f8f6ef 0%, #f3f1e6 100%);
+        color: #1f2d4a;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      #access-gate[hidden] {
+        display: none;
+      }
+
+      .access-card {
+        width: min(100%, 440px);
+        border-radius: 32px;
+        padding: 32px;
+        background: #ffffff;
+        box-shadow: 0 18px 42px rgba(130, 120, 90, 0.12);
+      }
+
+      .access-card h1 {
+        margin: 0;
+        color: #446b0a;
+        font-size: 30px;
+        line-height: 1.1;
+      }
+
+      .access-card p {
+        margin: 14px 0 0;
+        color: #4b5d7f;
+        font-size: 16px;
+        line-height: 1.7;
+      }
+
+      .access-card label {
+        display: block;
+        margin-top: 24px;
+        color: #4b5d7f;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .access-card input {
+        box-sizing: border-box;
+        width: 100%;
+        margin-top: 10px;
+        border: 1px solid #d8e4c5;
+        border-radius: 22px;
+        padding: 14px 16px;
+        color: #1f2d4a;
+        font: inherit;
+        font-size: 18px;
+        font-weight: 800;
+        outline: none;
+      }
+
+      .access-card button {
+        width: 100%;
+        margin-top: 18px;
+        border: 0;
+        border-radius: 999px;
+        padding: 16px 20px;
+        background: linear-gradient(180deg, #4f7d00 0%, #376100 100%);
+        color: #ffffff;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.22em;
+      }
+
+      .access-error {
+        min-height: 24px;
+        color: #b34232 !important;
+        font-size: 14px !important;
+        font-weight: 800;
+      }
+    </style>
     <style>{{TAILWIND}}</style>
   </head>
   <body>
+    <div id="access-gate" hidden>
+      <form class="access-card" id="access-form">
+        <h1>First Bites Tracker</h1>
+        <p>Enter the access code from your Etsy Welcome PDF.</p>
+        <label for="access-code-input">Access code</label>
+        <input id="access-code-input" autocomplete="one-time-code" inputmode="text" />
+        <button type="submit">UNLOCK APP</button>
+        <p class="access-error" id="access-error" aria-live="polite"></p>
+      </form>
+    </div>
     <div id="app"></div>
     <script>
       (function () {
@@ -27,7 +120,169 @@
     <script>
       (function () {
         var storageKey = "toddler-food-tracker";
-        var app = Elm.Main.init({ node: document.getElementById("app") });
+        var accessKey = "first-bites-has-access";
+        var config = {
+          mode: {{MODE_JSON}},
+          hostedUrl: {{HOSTED_APP_URL_JSON}},
+          accessCode: {{ACCESS_CODE_JSON}}
+        };
+        var app = null;
+        var deferredInstallPrompt = null;
+        var importNotice = null;
+
+        window.addEventListener("beforeinstallprompt", function (event) {
+          event.preventDefault();
+          deferredInstallPrompt = event;
+          sendInstallAvailability(true);
+        });
+
+        window.addEventListener("appinstalled", function () {
+          deferredInstallPrompt = null;
+          sendInstallAvailability(false);
+        });
+
+        boot();
+
+        async function boot() {
+          var importRequest = readImportRequest();
+
+          if (config.mode === "hosted") {
+            if (importRequest.pin && importRequest.pin === config.accessCode) {
+              setHasAccess();
+            }
+
+            if (!hasAccess()) {
+              showAccessGate();
+              return;
+            }
+          }
+
+          if (importRequest.payload) {
+            await importFromPayload(importRequest.payload);
+          }
+
+          startElm();
+        }
+
+        function startElm() {
+          app = Elm.Main.init({
+            node: document.getElementById("app"),
+            flags: {
+              mode: config.mode,
+              hostedUrl: config.hostedUrl,
+              storageStatus: "unknown",
+              installAvailable: Boolean(deferredInstallPrompt),
+              importNotice: importNotice
+            }
+          });
+
+          wirePorts();
+          registerServiceWorker();
+
+          if (app.ports && app.ports.foodsLoaded) {
+            loadFoods();
+          }
+        }
+
+        function wirePorts() {
+          if (app.ports && app.ports.saveFoods) {
+            app.ports.saveFoods.subscribe(saveFoods);
+          }
+
+          if (app.ports && app.ports.exportFoods) {
+            app.ports.exportFoods.subscribe(exportFoods);
+          }
+
+          if (app.ports && app.ports.requestImportFoods) {
+            app.ports.requestImportFoods.subscribe(requestImportFoods);
+          }
+
+          if (app.ports && app.ports.requestInstall) {
+            app.ports.requestInstall.subscribe(requestInstall);
+          }
+
+          if (app.ports && app.ports.requestStoragePersistence) {
+            app.ports.requestStoragePersistence.subscribe(requestStoragePersistence);
+          }
+
+          if (app.ports && app.ports.requestUpgradeToHosted) {
+            app.ports.requestUpgradeToHosted.subscribe(requestUpgradeToHosted);
+          }
+
+          if (app.ports && app.ports.clearFoods) {
+            app.ports.clearFoods.subscribe(clearFoods);
+          }
+
+          if (app.ports && app.ports.requestNow && app.ports.nowLoaded) {
+            app.ports.requestNow.subscribe(function () {
+              app.ports.nowLoaded.send(Date.now());
+            });
+          }
+
+          if (app.ports && app.ports.focusDraftName) {
+            app.ports.focusDraftName.subscribe(function () {
+              window.requestAnimationFrame(function () {
+                var input = document.getElementById("draft-name-input");
+                if (input) {
+                  input.focus();
+                  if (typeof input.setSelectionRange === "function") {
+                    var length = input.value ? input.value.length : 0;
+                    input.setSelectionRange(length, length);
+                  }
+                }
+              });
+            });
+          }
+
+          if (app.ports && app.ports.requestClearFood) {
+            app.ports.requestClearFood.subscribe(requestClearFood);
+          }
+        }
+
+        function showAccessGate() {
+          var gate = document.getElementById("access-gate");
+          var appNode = document.getElementById("app");
+          var form = document.getElementById("access-form");
+          var input = document.getElementById("access-code-input");
+          var error = document.getElementById("access-error");
+
+          gate.hidden = false;
+          appNode.hidden = true;
+          input.focus();
+
+          form.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            if (normalizeCode(input.value) === normalizeCode(config.accessCode)) {
+              setHasAccess();
+              gate.hidden = true;
+              appNode.hidden = false;
+              boot();
+            } else {
+              error.textContent = "That code does not match the Welcome PDF.";
+            }
+          });
+        }
+
+        function normalizeCode(value) {
+          return String(value || "").trim().toUpperCase();
+        }
+
+        function hasAccess() {
+          try {
+            return localStorage.getItem(accessKey) === "true";
+          } catch (error) {
+            return false;
+          }
+        }
+
+        function setHasAccess() {
+          try {
+            localStorage.setItem(accessKey, "true");
+          } catch (error) {
+            console.warn("Unable to save access flag", error);
+          }
+        }
 
         function loadFoods() {
           try {
@@ -62,7 +317,7 @@
             var stamp = new Date().toISOString().slice(0, 10);
 
             anchor.href = url;
-            anchor.download = "toddler-food-backup-" + stamp + ".json";
+            anchor.download = "first-bites-backup-" + stamp + ".json";
             anchor.rel = "noopener";
             anchor.style.display = "none";
 
@@ -96,8 +351,8 @@
               try {
                 var parsed = JSON.parse(String(reader.result || ""));
 
-                if (app.ports && app.ports.foodsLoaded) {
-                  app.ports.foodsLoaded.send(parsed);
+                if (app.ports && app.ports.importedFoods) {
+                  app.ports.importedFoods.send(parsed);
                 }
               } catch (error) {
                 console.warn("Unable to import food tracker state", error);
@@ -118,6 +373,58 @@
           input.click();
         }
 
+        async function requestInstall() {
+          if (!deferredInstallPrompt) {
+            sendInstallAvailability(false);
+            return;
+          }
+
+          var promptEvent = deferredInstallPrompt;
+          deferredInstallPrompt = null;
+          sendInstallAvailability(false);
+          promptEvent.prompt();
+
+          try {
+            await promptEvent.userChoice;
+          } catch (error) {
+            console.warn("Install prompt was dismissed", error);
+          }
+        }
+
+        async function requestStoragePersistence() {
+          var status = "standard";
+
+          try {
+            if (navigator.storage && navigator.storage.persist) {
+              status = (await navigator.storage.persist()) ? "secured" : "standard";
+            }
+          } catch (error) {
+            console.warn("Unable to request persistent storage", error);
+          }
+
+          if (app && app.ports && app.ports.storageStatusLoaded) {
+            app.ports.storageStatusLoaded.send(status);
+          }
+        }
+
+        async function requestUpgradeToHosted(payload) {
+          if (!config.hostedUrl) {
+            window.alert("The hosted app link is not configured in this build.");
+            return;
+          }
+
+          try {
+            var encoded = await encodeMigrationPayload(JSON.stringify(payload));
+            var target = new URL(config.hostedUrl, window.location.href);
+
+            target.hash = "import=" + encodeURIComponent(encoded) + "&pin=" + encodeURIComponent(config.accessCode);
+            window.location.href = target.toString();
+          } catch (error) {
+            console.warn("Unable to prepare hosted upgrade", error);
+            window.alert("Unable to prepare your upgrade link. Please export a JSON backup instead.");
+          }
+        }
+
         function clearFoods() {
           try {
             localStorage.removeItem(storageKey);
@@ -134,49 +441,109 @@
           }
         }
 
-        if (app.ports && app.ports.saveFoods) {
-          app.ports.saveFoods.subscribe(saveFoods);
+        function sendInstallAvailability(isAvailable) {
+          if (app && app.ports && app.ports.installAvailabilityChanged) {
+            app.ports.installAvailabilityChanged.send(isAvailable);
+          }
         }
 
-        if (app.ports && app.ports.exportFoods) {
-          app.ports.exportFoods.subscribe(exportFoods);
-        }
+        function registerServiceWorker() {
+          if (config.mode !== "hosted" || !("serviceWorker" in navigator) || window.location.protocol === "file:") {
+            return;
+          }
 
-        if (app.ports && app.ports.requestImportFoods) {
-          app.ports.requestImportFoods.subscribe(requestImportFoods);
-        }
-
-        if (app.ports && app.ports.clearFoods) {
-          app.ports.clearFoods.subscribe(clearFoods);
-        }
-
-        if (app.ports && app.ports.requestNow && app.ports.nowLoaded) {
-          app.ports.requestNow.subscribe(function () {
-            app.ports.nowLoaded.send(Date.now());
-          });
-        }
-
-        if (app.ports && app.ports.focusDraftName) {
-          app.ports.focusDraftName.subscribe(function () {
-            window.requestAnimationFrame(function () {
-              var input = document.getElementById("draft-name-input");
-              if (input) {
-                input.focus();
-                if (typeof input.setSelectionRange === "function") {
-                  var length = input.value ? input.value.length : 0;
-                  input.setSelectionRange(length, length);
-                }
-              }
+          window.addEventListener("load", function () {
+            navigator.serviceWorker.register("./service-worker.js").catch(function (error) {
+              console.warn("Service worker registration failed", error);
             });
           });
         }
 
-        if (app.ports && app.ports.requestClearFood) {
-          app.ports.requestClearFood.subscribe(requestClearFood);
+        function readImportRequest() {
+          var hash = window.location.hash ? window.location.hash.slice(1) : "";
+          var params = new URLSearchParams(hash);
+
+          return {
+            payload: params.get("import"),
+            pin: params.get("pin")
+          };
         }
 
-        if (app.ports && app.ports.foodsLoaded) {
-          loadFoods();
+        async function importFromPayload(payload) {
+          try {
+            var json = await decodeMigrationPayload(payload);
+            var parsed = JSON.parse(json);
+
+            localStorage.setItem(storageKey, JSON.stringify(parsed));
+            importNotice = "Welcome! Your data has been successfully imported.";
+            cleanUrl();
+          } catch (error) {
+            console.warn("Unable to import hosted migration payload", error);
+            importNotice = "That upgrade link could not be imported. Please use JSON backup instead.";
+            cleanUrl();
+          }
+        }
+
+        function cleanUrl() {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+          }
+        }
+
+        async function encodeMigrationPayload(json) {
+          if (typeof CompressionStream === "function") {
+            var compressedStream = new Blob([json]).stream().pipeThrough(new CompressionStream("gzip"));
+            var compressedBuffer = await new Response(compressedStream).arrayBuffer();
+            return "gz." + bytesToBase64Url(new Uint8Array(compressedBuffer));
+          }
+
+          return "b64." + bytesToBase64Url(new TextEncoder().encode(json));
+        }
+
+        async function decodeMigrationPayload(payload) {
+          if (payload.indexOf("gz.") === 0) {
+            if (typeof DecompressionStream !== "function") {
+              throw new Error("This browser cannot decompress the upgrade link.");
+            }
+
+            var compressedBytes = base64UrlToBytes(payload.slice(3));
+            var decompressedStream = new Blob([compressedBytes]).stream().pipeThrough(new DecompressionStream("gzip"));
+            return await new Response(decompressedStream).text();
+          }
+
+          if (payload.indexOf("b64.") === 0) {
+            return new TextDecoder("utf-8").decode(base64UrlToBytes(payload.slice(4)));
+          }
+
+          return new TextDecoder("utf-8").decode(base64UrlToBytes(payload));
+        }
+
+        function bytesToBase64Url(bytes) {
+          var binary = "";
+          var chunkSize = 0x8000;
+
+          for (var index = 0; index < bytes.length; index += chunkSize) {
+            binary += String.fromCharCode.apply(null, bytes.subarray(index, index + chunkSize));
+          }
+
+          return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+        }
+
+        function base64UrlToBytes(value) {
+          var base64 = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+
+          while (base64.length % 4) {
+            base64 += "=";
+          }
+
+          var binary = atob(base64);
+          var bytes = new Uint8Array(binary.length);
+
+          for (var index = 0; index < binary.length; index += 1) {
+            bytes[index] = binary.charCodeAt(index);
+          }
+
+          return bytes;
         }
       })();
     </script>
