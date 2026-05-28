@@ -1,6 +1,7 @@
 node_modules/
 elm-stuff/
-dist/
+dist/offline
+dist/welcome
 .tmp/
 .env
 .DS_Store
