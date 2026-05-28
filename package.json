@@ -8,6 +8,7 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.17",
     "elm": "^0.19.1-6",
+    "esbuild": "^0.25.12",
     "tailwindcss": "^4.0.17",
     "vite": "^6.3.5"
   }

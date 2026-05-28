@@ -7,6 +7,8 @@ export default defineConfig({
     emptyOutDir: true,
     outDir: ".tmp/vite",
     cssCodeSplit: false,
+    cssMinify: "esbuild",
+    minify: "esbuild",
     rollupOptions: {
       input: "src/vite-entry.js",
       output: {

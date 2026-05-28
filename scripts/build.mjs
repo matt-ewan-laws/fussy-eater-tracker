@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { transformSync as transformWithEsbuild } from "esbuild";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const tmpDir = path.join(root, ".tmp");
@@ -27,6 +28,7 @@ mkdirSync(offlineDir, { recursive: true });
 mkdirSync(welcomeDir, { recursive: true });
 
 runBinary("elm", ["make", "src/Main.elm", "--optimize", "--output", elmOutput]);
+minifyElmBundle();
 runBinary("vite", ["build", "--config", "vite.config.mjs"]);
 
 const template = readFileSync(templatePath, "utf8");
@@ -43,12 +45,12 @@ const hostedHtml = renderAppHtml({
 });
 const offlineHtml = renderAppHtml({ mode: "offline", pwaHead: "" });
 
-writeFileSync(path.join(hostedDir, "index.html"), hostedHtml);
-writeFileSync(path.join(offlineDir, "first-bites-tracker.html"), offlineHtml);
+writeFileSync(path.join(hostedDir, "index.html"), minifyInlineAssets(hostedHtml));
+writeFileSync(path.join(offlineDir, "first-bites-tracker.html"), minifyInlineAssets(offlineHtml));
 writeFileSync(path.join(hostedDir, "manifest.webmanifest"), JSON.stringify(createManifest(), null, 2));
-writeFileSync(path.join(hostedDir, "service-worker.js"), createServiceWorker());
+writeFileSync(path.join(hostedDir, "service-worker.js"), minifyJavaScript(createServiceWorker(), "service-worker.js"));
 writeFileSync(path.join(hostedDir, "app-icon.svg"), createAppIconSvg());
-writeFileSync(path.join(welcomeDir, "first-bites-welcome.html"), createWelcomeHtml());
+writeFileSync(path.join(welcomeDir, "first-bites-welcome.html"), minifyInlineAssets(createWelcomeHtml()));
 writeFileSync(path.join(welcomeDir, "first-bites-welcome.pdf"), createWelcomePdf());
 
 execFileSync("zip", ["-j", path.join(offlineDir, "first-bites-offline.zip"), path.join(offlineDir, "first-bites-tracker.html")], {
@@ -315,6 +317,35 @@ function runBinary(binaryName, args) {
     cwd: root,
     stdio: "inherit"
   });
+}
+
+function minifyElmBundle() {
+  const minified = minifyJavaScript(readFileSync(elmOutput, "utf8"), "elm.js");
+  writeFileSync(elmOutput, minified);
+}
+
+function minifyInlineAssets(html) {
+  return html
+    .replace(/<style>([\s\S]*?)<\/style>/g, (_match, css) => `<style>${minifyInlineCss(css)}</style>`)
+    .replace(/<script>([\s\S]*?)<\/script>/g, (_match, js) => `<script>${minifyJavaScript(js, "inline.js")}</script>`);
+}
+
+function minifyInlineCss(css) {
+  return transformWithEsbuild(css, {
+    legalComments: "none",
+    loader: "css",
+    minify: true,
+    sourcefile: "inline.css"
+  }).code.trim();
+}
+
+function minifyJavaScript(js, sourcefile) {
+  return transformWithEsbuild(js, {
+    legalComments: "none",
+    minify: true,
+    sourcefile,
+    target: "es2017"
+  }).code.trim();
 }
 
 function escapeInlineStyle(value) {
