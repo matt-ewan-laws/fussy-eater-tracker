@@ -108,16 +108,7 @@
       </form>
     </div>
     <div id="app"></div>
-    <script>
-      (function () {
-        var binary = atob("{{ELM}}");
-        var bytes = Uint8Array.from(binary, function (char) {
-          return char.charCodeAt(0);
-        });
-        var source = new TextDecoder("utf-8").decode(bytes);
-        new Function(source)();
-      })();
-    </script>
+    <script data-preserve-minified>{{ELM}}</script>
     <script>
       (function () {
         var storageKey = "toddler-food-tracker";
@@ -125,6 +116,7 @@
         var config = {
           mode: {{MODE_JSON}},
           hostedUrl: {{HOSTED_APP_URL_JSON}},
+          requiresAccessCode: {{REQUIRES_ACCESS_CODE_JSON}},
           accessCode: {{ACCESS_CODE_JSON}}
         };
         var app = null;
@@ -147,7 +139,7 @@
         async function boot() {
           var importRequest = readImportRequest();
 
-          if (config.mode === "hosted") {
+          if (config.requiresAccessCode) {
             if (importRequest.pin && importRequest.pin === config.accessCode) {
               setHasAccess();
             }
@@ -418,7 +410,12 @@
             var encoded = await encodeMigrationPayload(JSON.stringify(payload));
             var target = new URL(config.hostedUrl, window.location.href);
 
-            target.hash = "import=" + encodeURIComponent(encoded) + "&pin=" + encodeURIComponent(config.accessCode);
+            target.hash = "import=" + encodeURIComponent(encoded);
+
+            if (config.accessCode) {
+              target.hash += "&pin=" + encodeURIComponent(config.accessCode);
+            }
+
             window.location.href = target.toString();
           } catch (error) {
             console.warn("Unable to prepare hosted upgrade", error);

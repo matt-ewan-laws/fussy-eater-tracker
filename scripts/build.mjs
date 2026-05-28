@@ -32,7 +32,7 @@ minifyElmBundle();
 runBinary("vite", ["build", "--config", "vite.config.mjs"]);
 
 const template = readFileSync(templatePath, "utf8");
-const elmBundle = Buffer.from(readFileSync(elmOutput, "utf8"), "utf8").toString("base64");
+const elmBundle = escapeInlineScript(readFileSync(elmOutput, "utf8"));
 const tailwindCss = escapeInlineStyle(readFileSync(cssOutput, "utf8"));
 
 const hostedHtml = renderAppHtml({
@@ -111,13 +111,27 @@ function requiredConfig(name, localDefault) {
 }
 
 function renderAppHtml({ mode, pwaHead }) {
-  return template
-    .replace("{{TAILWIND}}", tailwindCss)
-    .replace("{{ELM}}", elmBundle)
-    .replace("{{PWA_HEAD}}", pwaHead)
-    .replace("{{MODE_JSON}}", JSON.stringify(mode))
-    .replace("{{HOSTED_APP_URL_JSON}}", JSON.stringify(hostedAppUrl))
-    .replace("{{ACCESS_CODE_JSON}}", JSON.stringify(accessCode));
+  const requiresAccessCode = mode === "hosted";
+
+  return replaceTokens(template, {
+    "{{TAILWIND}}": tailwindCss,
+    "{{ELM}}": elmBundle,
+    "{{PWA_HEAD}}": pwaHead,
+    "{{MODE_JSON}}": JSON.stringify(mode),
+    "{{HOSTED_APP_URL_JSON}}": JSON.stringify(hostedAppUrl),
+    "{{REQUIRES_ACCESS_CODE_JSON}}": JSON.stringify(requiresAccessCode),
+    "{{ACCESS_CODE_JSON}}": JSON.stringify(requiresAccessCode ? accessCode : null)
+  });
+}
+
+function replaceTokens(value, replacements) {
+  let output = value;
+
+  for (const [token, replacement] of Object.entries(replacements)) {
+    output = output.split(token).join(replacement);
+  }
+
+  return output;
 }
 
 function createManifest() {
@@ -325,9 +339,17 @@ function minifyElmBundle() {
 }
 
 function minifyInlineAssets(html) {
+  const preservedScripts = [];
+
   return html
+    .replace(/<script data-preserve-minified>([\s\S]*?)<\/script>/g, (_match, js) => {
+      const placeholder = `%%PRESERVED_SCRIPT_${preservedScripts.length}%%`;
+      preservedScripts.push(`<script>${js}</script>`);
+      return placeholder;
+    })
     .replace(/<style>([\s\S]*?)<\/style>/g, (_match, css) => `<style>${minifyInlineCss(css)}</style>`)
-    .replace(/<script>([\s\S]*?)<\/script>/g, (_match, js) => `<script>${minifyJavaScript(js, "inline.js")}</script>`);
+    .replace(/<script>([\s\S]*?)<\/script>/g, (_match, js) => `<script>${minifyJavaScript(js, "inline.js")}</script>`)
+    .replace(/%%PRESERVED_SCRIPT_(\d+)%%/g, (_match, index) => preservedScripts[Number(index)]);
 }
 
 function minifyInlineCss(css) {
@@ -350,6 +372,10 @@ function minifyJavaScript(js, sourcefile) {
 
 function escapeInlineStyle(value) {
   return value.replaceAll("</style>", "<\\/style>");
+}
+
+function escapeInlineScript(value) {
+  return value.replaceAll("</script>", "<\\/script>");
 }
 
 function escapeHtml(value) {
